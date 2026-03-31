@@ -19,8 +19,9 @@ import {
     rebuildHistoryDOM, computeAverages, updateSymmetryUI,
     updateLabProgressUI, showLabResults, hideLabResults,
     syncLabConfig, renderRhythmConfig, renderRhythmPresets, syncRhythmConfig,
+    setLocale,
 } from './ui.js';
-import { initRenderer, renderPixi, getScreenSize } from './renderer.js';
+import { initRenderer, renderPixi, getScreenSize, setRendererTheme, setRendererLocale } from './renderer.js';
 
 let lastTs = null, fpsFrames = 0, fpsTimer = 0, fpsDisplay;
 
@@ -60,7 +61,328 @@ Odd signatures (7/8, 11/8) and irrational rhythms break the reflex of predictabl
     },
 };
 
+const TRANSLATIONS = {
+    en: {
+        page_title: 'CS2 Movement Trainer',
+        'mode.freestyle': 'Freestyle',
+        'mode.ttk': 'Time to Shot',
+        'mode.strafelab': 'Strafe Lab',
+        'mode.microstrafe': 'Micro-Strafe',
+        'mode.rhythm': 'Rhythm',
+        live_data: 'Live Data',
+        speed: 'Speed',
+        phase: 'Phase',
+        last_shot: 'Last Shot',
+        total_decel: 'Total Decel Time',
+        cs_time: 'CS Time',
+        cs: 'CS',
+        coast: 'Coast',
+        avg_tts: 'Avg Time to Shot',
+        avg_gap: 'Avg gap time',
+        avg_ovl: 'Avg overlap time',
+        av_breakdown: 'One at a time',
+        av_cs: 'Avg CS duration',
+        av_spd: 'Avg speed at shot',
+        success_rate: 'Success rate',
+        total_shots: 'Total Shots',
+        total_actions: 'Total Actions',
+        false_starts: 'False Starts',
+        direction: 'DIRECTION',
+        distance_quota: 'DISTANCE QUOTA',
+        accurate_shots: 'ACCURATE SHOTS REQUIRED',
+        left_label: '← Left (A)',
+        right_label: 'Right (D) →',
+        presets: 'PRESETS',
+        bpm: 'BPM',
+        vol: 'VOL',
+        segments: 'SEGMENTS',
+        segment_hint: 'bars × num/denom · groups',
+        add: '+ Add',
+        start: 'START',
+        symmetry: 'Symmetry',
+        reset: 'reset',
+        left: '← LEFT',
+        right: 'RIGHT →',
+        avg_spd_shot: 'Avg Spd@Shot',
+        avg_oat: 'Avg One at a Time',
+        recorded: 'Recorded',
+        export_lab_csv: 'Export Lab CSV',
+        export_history_csv: 'Export History as CSV',
+        retry: 'RETRY',
+        back_to_config: 'BACK TO CONFIG',
+        sl_desc_strafelab: 'Wide-peek: run the distance fast, shoot at the threshold.',
+        sl_desc_microstrafe: 'Micro-movement: stay under the threshold, coast cleanly.',
+        weapon_knife: 'Knife',
+        weapon_deagle: 'Desert Eagle',
+        weapon_m4a4: 'M4A4',
+        weapon_m4a1s: 'M4A1-S',
+        weapon_ak47: 'AK-47',
+        weapon_famas: 'FAMAS',
+        weapon_galil: 'Galil AR',
+        weapon_awp: 'AWP (Unscoped)',
+        lang_target_zh: '中文',
+        lang_target_en: 'EN',
+        theme_target_light: 'Light',
+        theme_target_dark: 'Dark',
+        off: 'off',
+        start_session: 'START SESSION',
+    },
+    zh: {
+        page_title: 'CS2 运动训练器',
+        'mode.freestyle': '自由模式',
+        'mode.ttk': '时间到射击',
+        'mode.strafelab': '冲刺训练',
+        'mode.microstrafe': '微移动',
+        'mode.rhythm': '节奏',
+        live_data: '实时数据',
+        speed: '速度',
+        phase: '阶段',
+        last_shot: '最后一枪',
+        total_decel: '总减速时间',
+        cs_time: 'CS 时间',
+        cs: 'CS',
+        coast: '滑步',
+        avg_tts: '平均射击时间',
+        avg_gap: '平均空隙时间',
+        avg_ovl: '平均重叠时间',
+        av_breakdown: '一次完成',
+        av_cs: '平均CS时长',
+        av_spd: '平均射击速度',
+        success_rate: '成功率',
+        total_shots: '总射击数',
+        total_actions: '总动作数',
+        false_starts: '误发次数',
+        direction: '方向',
+        distance_quota: '距离配额',
+        accurate_shots: '准确射击要求',
+        left_label: '← 左 (A)',
+        right_label: '右 (D) →',
+        presets: '预设',
+        bpm: '节奏',
+        vol: '音量',
+        segments: '节拍段',
+        segment_hint: '小节 × 分子/分母 · 组',
+        add: '+ 添加',
+        start: '开始',
+        stop: '停止',
+        symmetry: '对称性',
+        reset: '重置',
+        left: '← 左侧',
+        right: '右侧 →',
+        avg_spd_shot: '平均射击速度',
+        avg_oat: '平均一次完成',
+        recorded: '记录',
+        export_lab_csv: '导出训练 CSV',
+        export_history_csv: '导出历史 CSV',
+        retry: '重试',
+        back_to_config: '返回配置',
+        sl_desc_strafelab: '宽视野训练：快速完成距离配额，在阈值处射击。',
+        sl_desc_microstrafe: '微移动训练：保持阈值以下，滑步干净。',
+        weapon_knife: '刀',
+        weapon_deagle: '沙漠之鹰',
+        weapon_m4a4: 'M4A4',
+        weapon_m4a1s: 'M4A1-S',
+        weapon_ak47: 'AK-47',
+        weapon_famas: 'FAMAS',
+        weapon_galil: 'Galil AR',
+        weapon_awp: 'AWP（无镜）',
+        lang_target_zh: 'EN',
+        lang_target_en: '中文',
+        theme_target_light: '亮色',
+        theme_target_dark: '暗色',
+        off: '关闭',
+        start_session: '开始训练',
+        stop_session: '停止训练',
+        session_complete: '训练完成',
+        time: '时间',
+        shots: '射击',
+        shot_accuracy: '命中准确度',
+        avg_speed_shot: '平均射击速度',
+        avg_time_to_ready: '平均就绪时间',
+        realistic_ttr: '真实就绪时间',
+        inaccurate_distance: '不准距离 %',
+        shot_spread: '射击分布',
+        samples: '次数',
+        shot_history: '射击历史',
+        export_history_csv: '导出历史 CSV',
+    },
+};
+
+const ABOUT_CONTENT_ZH = {
+    [MODE.FREESTYLE]: {
+        title: '自由模式',
+        body: `基础练习。全速划步，按相反键取消动量（反划），当速度降到 73 u/s 以下时射击 —— 速度条上的绿色阈值标记。<br><br>查看历史中的 <b>减速条</b>：短而稳定 = 清晰技巧。持续滑步 = 键按得太早。间隙 = 没有按键的空窗。`,
+    },
+    [MODE.TTK]: {
+        title: '时间到射击',
+        body: `在压力下的反应与技术。自由划步直到 <b>场地发蓝</b> —— 那是立即反划并射击的提示。衡量从提示到准确射击的总时间。<br><br>提前射击（在蓝光前射击）会被记录为 <span style="color:var(--red)">误发</span>。延迟是随机的（1.5–10 秒），无法提前预判。`,
+    },
+    [MODE.STRAFELAB]: {
+        title: '冲刺训练',
+        body: `<b>宽视野训练。</b> 在选定方向上尽快完成距离配额 —— 每个移动单位都计入。准确射击（≤73 u/s）计入所需总数。<br><br>理想操作：全速冲刺 → 迅速反划 → 刚好在阈值射击 → 继续划步。射击分布分数表明你的射击是均匀分布还是集中在开始阶段。`,
+    },
+    [MODE.MICROSTRAFE]: {
+        title: '微移动',
+        body: `<b>阈值以下的微动。</b> 持续 ADAD 且不超出 73 u/s，保持每次射击同时规避。屏幕上的圆圈跟踪你的实际位置。<br><br><b>真实就绪时间</b> 会自动校准：它融合你的个人反划速度和滑步比例来估算你在敌人面前可停止的时长。数值越低越难被击中。`,
+    },
+    [MODE.RHYTHM]: {
+        title: '节奏',
+        body: `用于移动时机的多节奏节拍器。在重音拍（大点）上反向，小点用于填充。<br><br>不规则拍子（7/8、11/8）和非整数节奏会打破可预测的 ADAD 反应。一旦你能在 160bpm 的 7/8 节奏下稳定划步，你的移动就更难被敌人预测。`,
+    },
+};
+
+const INSTRUCTIONS = {
+    default: {
+        en: `<p><span>A / D or ← / →</span> — strafe</p><p><span>LEFT CLICK or SPACE</span> — shoot</p><p>Strafe → counter-strafe → shoot → repeat</p>`,
+        zh: `<p><span>A / D 或 ← / →</span> — 划步</p><p><span>左键 或 空格</span> — 射击</p><p>划步 → 反划 → 射击 → 重复</p>`,
+    },
+    freestyle: {
+        en: `<p><span>A / D or ← / →</span> — strafe</p><p><span>LEFT CLICK or SPACE</span> — shoot</p><p>Keep your movement smooth and clean.</p>`,
+        zh: `<p><span>A / D 或 ← / →</span> — 划步</p><p><span>左键 或 空格</span> — 射击</p><p>保持移动流畅且干净。</p>`,
+    },
+    ttk: {
+        en: `<p><span>A / D</span> — strafe &nbsp;·&nbsp; <span>WAIT for BLUE GLOW</span> then CS + shoot</p><p>Firing before the glow = <span style="color:var(--red)">False Start</span></p>`,
+        zh: `<p><span>A / D</span> — 划步 &nbsp;·&nbsp; <span>等待蓝光</span> 后 CS + 射击</p><p>在蓝光前射击 = <span style="color:var(--red)">误发</span></p>`,
+    },
+    strafelab: {
+        en: `<p><span>A / D</span> — strafe in chosen direction &nbsp;·&nbsp; <span>CLICK / SPACE</span> shoot</p><p>Cover the quota at max speed. Every shot must land at ≤73 u/s.</p>`,
+        zh: `<p><span>A / D</span> — 向选定方向划步 &nbsp;·&nbsp; <span>点击 / 空格</span> 射击</p><p>尽可能快地完成配额。每次射击速度须 ≤73 u/s。</p>`,
+    },
+    microstrafe: {
+        en: `<p><span>A / D</span> — ADAD &nbsp;·&nbsp; <span>CLICK / SPACE</span> shoot when accurate &nbsp;·&nbsp; <span>DRAG</span> circle to reposition</p><p>Stay below threshold. Coast clean. Never overshoot on purpose.</p>`,
+        zh: `<p><span>A / D</span> — ADAD &nbsp;·&nbsp; <span>点击 / 空格</span> 在准确时射击 &nbsp;·&nbsp; <span>拖动</span> 圆圈重新定位</p><p>保持阈值以下。滑步干净。不要故意超速。</p>`,
+    },
+    rhythm: {
+        en: `<p><span>A / D</span> — reverse direction on the <span>large dot</span></p><p>Medium = sub-accent · small = fill · stay irregular, stay in time</p>`,
+        zh: `<p><span>A / D</span> — 在 <span>大点</span> 上反转方向</p><p>中点 = 副重音 · 小点 = 填充 · 保持不规则，保持节奏</p>`,
+    },
+};
+
+let currentLang = 'en';
+let currentTheme = 'dark';
+
+function t(key) {
+    return TRANSLATIONS[currentLang][key] ?? TRANSLATIONS.en[key] ?? key;
+}
+
+function setDocumentLang() {
+    document.documentElement.lang = currentLang === 'zh' ? 'zh-Hans' : 'en';
+}
+
+function savePreferences() {
+    try {
+        localStorage.setItem('counterstrafeLang', currentLang);
+        localStorage.setItem('counterstrafeTheme', currentTheme);
+    } catch (err) {
+        // ignore if storage unavailable
+    }
+}
+
+function loadPreferences() {
+    try {
+        const storedLang = localStorage.getItem('counterstrafeLang');
+        const storedTheme = localStorage.getItem('counterstrafeTheme');
+        if (storedLang === 'zh' || storedLang === 'en') currentLang = storedLang;
+        if (storedTheme === 'light' || storedTheme === 'dark') currentTheme = storedTheme;
+    } catch (err) {
+        // ignore
+    }
+}
+
+function updateLanguageButton() {
+    const button = document.getElementById('lang-toggle');
+    if (!button) return;
+    button.textContent = currentLang === 'en' ? t('lang_target_zh') : t('lang_target_en');
+}
+
+function updateThemeButton() {
+    const button = document.getElementById('theme-toggle');
+    if (!button) return;
+    button.textContent = currentTheme === 'dark' ? t('theme_target_light') : t('theme_target_dark');
+}
+
+function applyTheme() {
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-mode');
+    } else {
+        document.body.classList.remove('light-mode');
+    }
+    setRendererTheme(currentTheme);
+    updateThemeButton();
+}
+
+function translateStatic() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (!key) return;
+        const value = t(key);
+        if (value !== undefined) el.textContent = value;
+    });
+    document.title = t('page_title');
+    setDocumentLang();
+    setLocale(currentLang);
+    setRendererLocale(currentLang);
+    updateLanguageButton();
+    updateThemeButton();
+}
+
+function refreshModeText() {
+    const isLab = STATE.currentMode === MODE.STRAFELAB || STATE.currentMode === MODE.MICROSTRAFE;
+    const exportButton = document.getElementById('btn-export');
+    if (exportButton) exportButton.textContent = isLab ? t('export_lab_csv') : t('export_history_csv');
+    if (isLab) {
+        const labTitle = document.getElementById('sl-config-title');
+        const labDesc = document.getElementById('sl-config-desc');
+        if (labTitle) labTitle.textContent = STATE.currentMode === MODE.STRAFELAB ? t('mode.strafelab') : t('mode.microstrafe');
+        if (labDesc) labDesc.textContent = STATE.currentMode === MODE.STRAFELAB ? t('sl_desc_strafelab') : t('sl_desc_microstrafe');
+    }
+}
+
+function setInstructions(mode) {
+    const instEl = document.getElementById('instructions');
+    if (!instEl) return;
+    const block = INSTRUCTIONS[mode] || INSTRUCTIONS.default;
+    instEl.innerHTML = block[currentLang] || block.en;
+}
+
+function toggleLanguage() {
+    currentLang = currentLang === 'en' ? 'zh' : 'en';
+    setDocumentLang();
+    translateStatic();
+    refreshModeText();
+    setInstructions(STATE.currentMode);
+    updateAboutPanel(STATE.currentMode);
+    savePreferences();
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+    savePreferences();
+}
+
+function setLanguage(lang) {
+    if (lang !== 'en' && lang !== 'zh') return;
+    currentLang = lang;
+    setDocumentLang();
+    translateStatic();
+    refreshModeText();
+    setInstructions(STATE.currentMode);
+    updateAboutPanel(STATE.currentMode);
+    savePreferences();
+}
+
+function initializeLanguageAndTheme() {
+    loadPreferences();
+    setDocumentLang();
+    applyTheme();
+    translateStatic();
+    refreshModeText();
+    setInstructions(STATE.currentMode);
+}
+
 // ===========================================================================
+
 //  BOOT
 // ===========================================================================
 async function boot() {
@@ -71,6 +393,16 @@ async function boot() {
     recomputeBenchmarks();
     initVelBar();
     updateBenchmarksUI();
+    loadPreferences();
+    applyTheme();
+    translateStatic();
+    refreshModeText();
+    setInstructions(STATE.currentMode);
+
+    const langBtn = document.getElementById('lang-toggle');
+    if (langBtn) langBtn.addEventListener('click', toggleLanguage);
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 
     document.getElementById('weapon-select').addEventListener('change', e => {
         const id = e.target.value;
@@ -110,33 +442,21 @@ async function boot() {
             document.getElementById('canvas-container').classList.toggle('ttk-armed', ttk);
             document.getElementById('hist-section').style.display = (isLab || rhy) ? 'none' : 'flex';
             document.getElementById('avg-section').style.display  = (isLab || rhy) ? 'none' : 'block';
-            document.getElementById('btn-export').textContent     = isLab ? 'Export Lab CSV' : 'Export History as CSV';
+            document.getElementById('btn-export').textContent     = isLab ? t('export_lab_csv') : t('export_history_csv');
 
             if (isLab) {
                 const labTitle = document.getElementById('sl-config-title');
                 const labDesc  = document.getElementById('sl-config-desc');
-                if (labTitle) labTitle.textContent = sl ? 'Strafe Lab' : 'Micro-Strafe';
+                if (labTitle) labTitle.textContent = sl ? t('mode.strafelab') : t('mode.microstrafe');
                 if (labDesc) labDesc.textContent = sl
-                    ? 'Wide-peek: run the distance fast, shoot at the threshold.'
-                    : 'Micro-movement: stay under the threshold, coast cleanly.';
+                    ? t('sl_desc_strafelab')
+                    : t('sl_desc_microstrafe');
                 syncLabConfig(STATE.currentMode);
             }
 
             // Update About panel
             updateAboutPanel(STATE.currentMode);
-
-            const instEl = document.getElementById('instructions');
-            if (ttk) {
-                instEl.innerHTML = `<p><span>A / D</span> — strafe &nbsp;·&nbsp; <span>WAIT for BLUE GLOW</span> then CS + shoot</p><p>Firing before the glow = <span style="color:var(--red)">False Start</span></p>`;
-            } else if (sl) {
-                instEl.innerHTML = `<p><span>A / D</span> — strafe in chosen direction &nbsp;·&nbsp; <span>CLICK / SPACE</span> shoot</p><p>Cover the quota at max speed. Every shot must land at ≤73 u/s.</p>`;
-            } else if (ms) {
-                instEl.innerHTML = `<p><span>A / D</span> — ADAD &nbsp;·&nbsp; <span>CLICK / SPACE</span> shoot when accurate &nbsp;·&nbsp; <span>DRAG</span> circle to reposition</p><p>Stay below threshold. Coast clean. Never overshoot on purpose.</p>`;
-            } else if (rhy) {
-                instEl.innerHTML = `<p><span>A / D</span> — reverse direction on the <span>large dot</span></p><p>Medium = sub-accent &nbsp;·&nbsp; small = fill &nbsp;·&nbsp; stay irregular, stay in time</p>`;
-            } else {
-                instEl.innerHTML = `<p><span>A / D or ← / →</span> — strafe</p><p><span>LEFT CLICK or SPACE</span> — shoot</p><p>Strafe → counter-strafe → shoot → repeat</p>`;
-            }
+            setInstructions(STATE.currentMode);
 
             resetTTK();
             rebuildHistoryDOM();
@@ -211,7 +531,7 @@ async function boot() {
 //  ABOUT PANEL
 // ===========================================================================
 function updateAboutPanel(mode) {
-    const content = ABOUT_CONTENT[mode];
+    const content = currentLang === 'zh' ? ABOUT_CONTENT_ZH[mode] : ABOUT_CONTENT[mode];
     if (!content) return;
     document.getElementById('about-title').textContent = content.title;
     document.getElementById('about-text').innerHTML    = content.body;

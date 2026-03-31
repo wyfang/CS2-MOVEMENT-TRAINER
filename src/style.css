@@ -19,6 +19,25 @@
     --yellow:   #eab308;
 }
 
+body.light-mode {
+    --bg0:      #f7f8fb;
+    --bg1:      #edf2f7;
+    --bg2:      #e2e8f0;
+    --bg3:      #cfd8e8;
+    --border:   #cbd5e1;
+    --border2:  #94a3b8;
+    --text-dim: #64748b;
+    --text-mid: #475569;
+    --text:     #0f172a;
+    --text-hi:  #0f172a;
+    --accent:   #2563eb;
+    --accent2:  #1d4ed8;
+    --green:    #16a34a;
+    --orange:   #ea580c;
+    --red:      #dc2626;
+    --yellow:   #ca8a04;
+}
+
 html, body { height:100%; overflow:hidden; background:var(--bg0); color:var(--text); font-family:'JetBrains Mono','Consolas',monospace; }
 #app { display:flex; height:100vh; }
 
@@ -33,6 +52,9 @@ html, body { height:100%; overflow:hidden; background:var(--bg0); color:var(--te
 /* ── Mode Tabs ── */
 #mode-tabs { display:flex; gap:2px; flex-shrink:0; }
 .mode-tab { background:transparent; color:var(--text-dim); border:1px solid transparent; font-family:inherit; font-size:8px; letter-spacing:1px; text-transform:uppercase; padding:3px 7px; border-radius:3px; cursor:pointer; outline:none; transition:all 80ms; white-space:nowrap; }
+.hdr-btn { background:var(--bg2); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:4px 8px; font-family:inherit; font-size:8px; letter-spacing:1px; text-transform:none; cursor:pointer; transition:all 80ms; }
+.hdr-btn:hover, .hdr-btn.active { background:var(--bg3); border-color:var(--accent); color:var(--accent); }
+#ui-controls { display:flex; gap:6px; align-items:center; }
 .mode-tab:hover  { border-color:var(--border); color:var(--text-mid); }
 .mode-tab.active { background:var(--bg2); border-color:var(--accent2); color:var(--accent); }
 

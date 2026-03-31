@@ -12,6 +12,52 @@ let gridGraphics;
 let ttkOverlay;
 let rhythmGraphics;
 let dragHintText;
+let currentRendererTheme = 'dark';
+let currentRendererLocale = 'en';
+const RENDERER_THEMES = {
+    dark: {
+        background: 0x080a0c,
+        gridLine: 0x0e1214,
+        gridCross: 0x161c20,
+    },
+    light: {
+        background: 0xf8fafc,
+        gridLine: 0xcbd5e1,
+        gridCross: 0x94a3b8,
+    },
+};
+
+export function setRendererLocale(locale) {
+    currentRendererLocale = locale === 'zh' ? 'zh' : 'en';
+}
+
+const FEEDBACK_TRANSLATIONS = {
+    zh: {
+        'Changed Dir': '改变方向',
+        'False Start': '误发',
+        'Perfect': '完美',
+        'Good': '良好',
+        'OK': '正常',
+        'Slow': '慢',
+        'Coasted': '滑步',
+        'Moving': '移动中',
+        'No Attempt': '未尝试',
+    },
+    en: {},
+};
+
+export function setRendererTheme(theme) {
+    currentRendererTheme = theme === 'light' ? 'light' : 'dark';
+    if (!app) return;
+    if (app.renderer.background) {
+        app.renderer.background.color = RENDERER_THEMES[currentRendererTheme].background;
+        app.renderer.background.alpha = 1;
+    } else {
+        app.renderer.backgroundColor = RENDERER_THEMES[currentRendererTheme].background;
+    }
+    app.view.style.backgroundColor = `#${RENDERER_THEMES[currentRendererTheme].background.toString(16).padStart(6, '0')}`;
+    drawGrid();
+}
 
 const RhythmVisuals = {
     flashIdx:     -1,
@@ -23,11 +69,12 @@ export async function initRenderer(parentElement) {
     app = new PIXI.Application();
     await app.init({
         resizeTo:        parentElement,
-        backgroundColor: 0x080a0c,
+        backgroundColor: RENDERER_THEMES[currentRendererTheme].background,
         antialias:       false,
         resolution:      window.devicePixelRatio || 1,
         autoDensity:     true,
     });
+    app.view.style.backgroundColor = `#${RENDERER_THEMES[currentRendererTheme].background.toString(16).padStart(6, '0')}`;
     parentElement.appendChild(app.canvas);
 
     gridGraphics   = new PIXI.Graphics(); app.stage.addChild(gridGraphics);
@@ -74,15 +121,16 @@ function drawGrid() {
     if (!app) return;
     const W = app.screen.width, H = app.screen.height;
     const cx = W * 0.5, cy = H * 0.5;
+    const theme = RENDERER_THEMES[currentRendererTheme];
     gridGraphics.clear();
     const gs = 48;
     for (let x = cx % gs; x < W; x += gs) { gridGraphics.moveTo(x, 0); gridGraphics.lineTo(x, H); }
     for (let y = cy % gs; y < H; y += gs) { gridGraphics.moveTo(0, y); gridGraphics.lineTo(W, y); }
-    gridGraphics.stroke({ width: 1, color: 0x0e1214 });
+    gridGraphics.stroke({ width: 1, color: theme.gridLine });
     // Centre cross
     gridGraphics.moveTo(cx - 18, cy); gridGraphics.lineTo(cx + 18, cy);
     gridGraphics.moveTo(cx, cy - 18); gridGraphics.lineTo(cx, cy + 18);
-    gridGraphics.stroke({ width: 1, color: 0x161c20 });
+    gridGraphics.stroke({ width: 1, color: theme.gridCross });
 }
 
 // ── TTK cue overlay ──
@@ -288,7 +336,8 @@ export function renderPixi(ts) {
         if (elapsed < dur) {
             const t = elapsed / dur;
             feedbackText.alpha      = Math.pow(1 - t, 1.5);
-            feedbackText.text       = Feedback.label;
+            const translated = FEEDBACK_TRANSLATIONS[currentRendererLocale]?.[Feedback.label];
+            feedbackText.text       = translated || Feedback.label;
             feedbackText.style.fill = parseInt(Feedback.color.replace('#','0x'));
             feedbackText.style.fontSize = isMicro ? 18 : 24;
             const fbx = isMicro ? (MicroStrafeVisuals.x ?? cx) : cx + PlayerState[P_VISUAL_POS];

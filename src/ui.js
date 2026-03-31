@@ -102,9 +102,10 @@ function buildRow(rec) {
     if (isTTK && rec.isAttempt && !rec.isFalseStart) {
         row.style.borderLeft = `3px solid ${rec.isSuccess ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'}`;
     }
+    const label = ResultLabels[currentLocale]?.[rec.result] ?? rec.label;
     row.innerHTML =
         `<span class="h-num">#${rec.n}</span>` +
-        `<span class="h-res" style="color:${rec.color}">${rec.label}</span>` +
+        `<span class="h-res" style="color:${rec.color}">${label}</span>` +
         `<div class="h-det">${detHtml}<div class="h-decel-bar" ${barStyle}></div></div>`;
     return row;
 }
@@ -127,7 +128,8 @@ export function rebuildHistoryDOM() {
 // ===========================================================================
 export function updateSidebar(rec) {
     const lv = document.getElementById('lv-result');
-    lv.textContent = rec.label; lv.style.color = rec.color;
+    const label = ResultLabels[currentLocale]?.[rec.result] ?? rec.label;
+    lv.textContent = label; lv.style.color = rec.color;
     if (rec.totalDecelMs > 0) {
         document.getElementById('lv-total').textContent   = rec.totalDecelMs;
         document.getElementById('lv-total-u').textContent = ' ms';
@@ -152,7 +154,42 @@ export function updateSidebarLabMode(_rec) {
     updateSymmetryUI();
 }
 
-const PhaseNames = ['IDLE', 'STRAFING', 'DECELERATING'];
+let currentLocale = 'en';
+export function setLocale(locale) {
+    if (locale === 'zh' || locale === 'en') currentLocale = locale;
+}
+
+const PhaseNames = {
+    en: ['IDLE', 'STRAFING', 'DECELERATING'],
+    zh: ['空闲', '滑步', '减速'],
+};
+
+const ResultLabels = {
+    en: {
+        MOVING: 'Moving',
+        NO_ATTEMPT: 'No Attempt',
+        TOO_SLOW: 'Too Slow',
+        PERFECT: 'Perfect',
+        GOOD: 'Good',
+        OK: 'OK',
+        SLOW: 'Slow',
+        COASTED: 'Coasted',
+        FALSE_START: 'False Start',
+    },
+    zh: {
+        MOVING: '移动中',
+        NO_ATTEMPT: '未尝试',
+        TOO_SLOW: '太慢',
+        PERFECT: '完美',
+        GOOD: '良好',
+        OK: '正常',
+        SLOW: '慢',
+        COASTED: '滑步',
+        FALSE_START: '误发',
+        ABORTED: '改变方向',
+    },
+};
+
 let _keyA, _keyD;
 function keyEls() {
     if (!_keyA) _keyA = document.querySelector('.key[data-k="A"]');
@@ -162,8 +199,8 @@ function keyEls() {
 
 export function updateLiveDOM() {
     document.getElementById('lv-speed').textContent  = ~~Math.abs(PlayerState[P_VELOCITY]);
-    document.getElementById('lv-phase').textContent  = PhaseNames[PlayerState[P_PHASE]];
-    document.getElementById('hdr-phase').textContent = PhaseNames[PlayerState[P_PHASE]];
+    document.getElementById('lv-phase').textContent  = PhaseNames[currentLocale][PlayerState[P_PHASE]];
+    document.getElementById('hdr-phase').textContent = PhaseNames[currentLocale][PlayerState[P_PHASE]];
     const { keyA, keyD } = keyEls();
     if (keyA) keyA.classList.toggle('on', InputState[IN_A] === 1);
     if (keyD) keyD.classList.toggle('on', InputState[IN_D] === 1);
