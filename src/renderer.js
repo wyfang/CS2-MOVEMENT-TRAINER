@@ -39,6 +39,7 @@ const FEEDBACK_TRANSLATIONS = {
         'Good': '良好',
         'OK': '正常',
         'Slow': '慢',
+        'Too Slow': '太慢',
         'Coasted': '滑步',
         'Moving': '移动中',
         'No Attempt': '未尝试',
@@ -139,7 +140,7 @@ function drawTTKOverlay() {
     const W = app.screen.width, H = app.screen.height;
     ttkOverlay.clear();
     ttkOverlay.rect(0, 0, W, H);
-    ttkOverlay.fill({ color: 0x00e5ff, alpha: 0.07 });
+    ttkOverlay.fill({ color: 0x00e5ff, alpha: 0.5 });
 }
 
 // ── Colour by speed (green=accurate → orange=max speed) ──
