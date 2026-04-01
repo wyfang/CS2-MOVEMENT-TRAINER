@@ -383,10 +383,10 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 #hist-footer button { width:100%; background:var(--bg2); color:var(--text-mid); border:1px solid var(--border); border-radius:3px; padding:5px 8px; font-size:12px; cursor:pointer; text-transform:uppercase; font-family:inherit; letter-spacing:1px; transition:border-color 80ms,color 80ms; }
 #hist-footer button:hover { border-color:var(--accent); color:var(--text); }
 
-.h-row { display:grid; grid-template-columns:22px 74px 1fr; align-items:start; gap:5px; padding:5px 7px; border-radius:3px; margin-bottom:2px; background:var(--bg2); animation:rowIn 150ms ease; }
+.h-row { display:grid; grid-template-columns:4fr 6fr; align-items:start; gap:5px; padding:5px 7px; border-radius:3px; margin-bottom:2px; background:var(--bg2); animation:rowIn 150ms ease; }
 .h-row.no-attempt { opacity:.3; }
 @keyframes rowIn { from{opacity:0;transform:translateX(6px)} to{opacity:1;transform:translateX(0)} }
-.h-num { color:var(--text-dim); font-size:12px; padding-top:1px; }
+.h-num { color:var(--text-dim); font-size:12px; display:flex; flex-direction:column; gap:2px; }
 .h-res { font-weight:700; font-size:12px; }
 .h-det { color:var(--text-mid); font-size:12px; display:flex; flex-direction:column; gap:2px; }
 .h-decel-bar { height:2px; border-radius:1px; margin-top:3px; max-width:90px; }
